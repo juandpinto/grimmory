@@ -195,6 +195,41 @@
         </div>
       </div>
 
+      <div class="preferences-section">
+        <div class="section-header">
+          <h3 class="section-title">
+            <i class="pi pi-chart-bar"></i>
+            {{ t('koreader.statsPlugin') }}
+          </h3>
+          <p class="section-description">
+            {{ t('koreader.statsPluginDesc') }}
+          </p>
+        </div>
+
+        <div class="settings-card">
+          <div class="setting-item">
+            <div class="setting-info">
+              <p class="setting-description" [innerHTML]="t('koreader.statsPluginBasic')"></p>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <p class="setting-description" [innerHTML]="t('koreader.statsPluginRich')"></p>
+            </div>
+          </div>
+
+          <div class="setting-item">
+            <div class="setting-info">
+              <div class="setting-label-row">
+                <span class="setting-label">{{ t('koreader.statsPluginDownload') }}</span>
+              </div>
+              <p class="setting-description" [innerHTML]="t('koreader.statsPluginDownloadDesc')"></p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   } @else {
     <div class="settings-content">

@@ -6,8 +6,8 @@
   "copiedDetail": "{{label}} copied to clipboard",
   "copyFailedDetail": "Unable to copy {{label}} to clipboard",
   "koreader": {
-    "title": "KOReader Sync Configuration",
-    "description": "Configure KOReader integration to sync your reading progress between your device and Grimmory library.",
+    "title": "KOReader Progress & Stats Sync",
+    "description": "Configure KOReader integration to sync your reading progress and rich reading statistics between your device and Grimmory library.",
     "syncConfig": "Sync Configuration",
     "syncConfigDesc": "Enable and configure synchronization between your Grimmory library and KOReader device.",
     "enableSync": "Enable KOReader Sync",
@@ -15,7 +15,7 @@
     "syncWithGrimmory": "Sync reading progress with Grimmory eBook Reader",
     "syncWithGrimmoryDesc": "Enable bidirectional sync between Grimmory's eBook reader and KOReader. <strong>Note:</strong> Progress sync is approximate and may update by chapter rather than exact page or location.",
     "apiPath": "KOReader API Path",
-    "apiPathDesc": "The API endpoint path for your KOReader sync service.",
+    "apiPathDesc": "The API endpoint path for your KOReader sync service. Use this URL when configuring the KOReader Sync Plugin on your device.",
     "username": "KOReader Username",
     "usernameDesc": "Your username for authenticating with the KOReader sync service.",
     "usernameRequired": "Username is required.",
@@ -36,7 +36,13 @@
     "grimmoryReaderError": "Unable to update Grimmory eBook Reader sync setting. Please try again.",
     "saved": "Saved",
     "credentialsSaved": "KOReader account saved successfully.",
-    "credentialsError": "Failed to save KOReader credentials. Please try again."
+    "credentialsError": "Failed to save KOReader credentials. Please try again.",
+    "statsPlugin": "KOReader Stats Plugin",
+    "statsPluginDesc": "Grimmory supports two levels of KOReader integration:",
+    "statsPluginBasic": "<strong>Basic Sync</strong> — Uses KOReader's native sync protocol to keep your reading position in sync between devices. This is configured above using your username and password.",
+    "statsPluginRich": "<strong>Rich Statistics</strong> — Install the Grimmory KOReader Stats Plugin on your e-reader to sync detailed per-session analytics: time spent reading, pages turned, reading speed, and session history. No extra credentials are required — the plugin reuses the same Server URL, username, and password you configured above.",
+    "statsPluginDownload": "Download the Grimmory Stats Plugin",
+    "statsPluginDownloadDesc": "Download the plugin archive and extract it into the <code>plugins/</code> directory on your KOReader device. Then restart KOReader and configure the server URL in the plugin menu."
   },
   "kobo": {
     "title": "Kobo Integration Configuration",
