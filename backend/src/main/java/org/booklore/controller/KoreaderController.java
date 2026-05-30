@@ -1,5 +1,6 @@
 package org.booklore.controller;
 
+import org.booklore.model.dto.koreader.KoreaderStatsPayload;
 import org.booklore.model.dto.progress.KoreaderProgress;
 import org.booklore.service.koreader.KoreaderService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -56,5 +57,13 @@ public class KoreaderController {
     public ResponseEntity<?> updateProgress(@Parameter(description = "KoReader progress object") @Valid @RequestBody KoreaderProgress koreaderProgress) {
         koreaderService.saveProgress(koreaderProgress.getDocument(), koreaderProgress);
         return ResponseEntity.ok(Map.of("status", "progress updated"));
+    }
+
+    @Operation(summary = "Sync KoReader reading stats", description = "Ingest raw KOReader page-turn statistics and persist them as aggregated reading sessions.")
+    @ApiResponse(responseCode = "200", description = "Stats synced successfully")
+    @PostMapping("/syncs/stats")
+    public ResponseEntity<Map<String, Object>> syncStats(@RequestBody KoreaderStatsPayload payload) {
+        Map<String, Object> result = koreaderService.syncStats(payload);
+        return ResponseEntity.ok(result);
     }
 }

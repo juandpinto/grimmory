@@ -382,4 +382,15 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
             @Param("userId") Long userId,
             @Param("bookId") Long bookId,
             @Param("after") Instant after);
+
+    @Query("""
+            SELECT rs FROM ReadingSessionEntity rs
+            WHERE rs.user.id = :userId
+            AND rs.book.id = :bookId
+            AND rs.startTime = :startTime
+            """)
+    java.util.Optional<ReadingSessionEntity> findByUserIdAndBookIdAndStartTime(
+            @Param("userId") Long userId,
+            @Param("bookId") Long bookId,
+            @Param("startTime") Instant startTime);
 }
