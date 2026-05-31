@@ -329,6 +329,9 @@
     "menuCustomSend": "",
     "menuMarkPhysical": "",
     "menuUnmarkPhysical": "",
+    "menuConvertToCbz": "",
+    "convertToCbzStarted": "",
+    "convertToCbzFailed": ""
     "menuAttachToAnotherBook": "",
     "menuDeleteFileFormats": "",
     "menuDeleteSupplementaryFiles": "",

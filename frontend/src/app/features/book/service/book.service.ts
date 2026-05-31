@@ -256,6 +256,10 @@ export class BookService {
     );
   }
 
+  convertToCbz(bookId: number): Observable<void> {
+    return this.http.post<void>(`${this.url}/${bookId}/convert-to-cbz`, null);
+  }
+
   /*------------------ Reading & Viewer Settings ------------------*/
 
   readBook(bookId: number, reader?: 'epub-streaming', explicitBookType?: BookType): void {

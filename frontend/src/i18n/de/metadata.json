@@ -395,7 +395,10 @@
     },
     "audiobookAbridged": "Gekürzt",
     "menuMarkPhysical": "Als physisch markieren",
-    "menuUnmarkPhysical": "Markierung als physisch entfernen"
+    "menuUnmarkPhysical": "Markierung als physisch entfernen",
+    "menuConvertToCbz": "",
+    "convertToCbzStarted": "",
+    "convertToCbzFailed": ""
   },
   "sidecar": {
     "title": "Sidecar-Metadaten",
