@@ -83,6 +83,13 @@ public class CbxMetadataWriter implements MetadataWriter {
         }
     }
 
+    public byte[] generateComicInfoXml(BookMetadataEntity metadata, int pageCount) throws Exception {
+        ComicInfo comicInfo = new ComicInfo();
+        applyMetadataChanges(comicInfo, metadata, null);
+        comicInfo.setPageCount(pageCount);
+        return convertToBytes(comicInfo);
+    }
+
     public boolean shouldSaveMetadataToFile(File file) {
         MetadataPersistenceSettings.SaveToOriginalFile settings = appSettingService.getAppSettings().getMetadataPersistenceSettings().getSaveToOriginalFile();
 
@@ -155,16 +162,16 @@ public class CbxMetadataWriter implements MetadataWriter {
         MetadataCopyHelper helper = new MetadataCopyHelper(metadata);
 
         helper.copyTitle(clearFlags != null && clearFlags.isTitle(), info::setTitle);
-        
+
         // Summary: Remove HTML tags safely using Jsoup (handles complex HTML like attributes with '>')
         helper.copyDescription(clearFlags != null && clearFlags.isDescription(), val -> {
             if (val != null) {
-                // Jsoup.clean with Safelist.none() removes all HTML tags safely, 
+                // Jsoup.clean with Safelist.none() removes all HTML tags safely,
                 // handling edge cases like '<a href="...>">' that regex fails on
                 String clean = Jsoup.clean(val, Safelist.none()).trim();
-                log.debug("CbxMetadataWriter: Setting Summary to: {} (original length: {}, cleaned length: {})", 
-                    clean.length() > 50 ? clean.substring(0, 50) + "..." : clean, 
-                    val.length(), 
+                log.debug("CbxMetadataWriter: Setting Summary to: {} (original length: {}, cleaned length: {})",
+                    clean.length() > 50 ? clean.substring(0, 50) + "..." : clean,
+                    val.length(),
                     clean.length());
                 info.setSummary(clean);
             } else {
@@ -172,12 +179,12 @@ public class CbxMetadataWriter implements MetadataWriter {
                 info.setSummary(null);
             }
         });
-        
+
         helper.copyPublisher(clearFlags != null && clearFlags.isPublisher(), info::setPublisher);
         helper.copySeriesName(clearFlags != null && clearFlags.isSeriesName(), info::setSeries);
         helper.copySeriesNumber(clearFlags != null && clearFlags.isSeriesNumber(), val -> info.setNumber(formatFloatValue(val)));
         helper.copySeriesTotal(clearFlags != null && clearFlags.isSeriesTotal(), info::setCount);
-        
+
         helper.copyPublishedDate(clearFlags != null && clearFlags.isPublishedDate(), date -> {
              if (date != null) {
                  info.setYear(date.getYear());
@@ -189,10 +196,10 @@ public class CbxMetadataWriter implements MetadataWriter {
                  info.setDay(null);
              }
         });
-        
+
         helper.copyPageCount(clearFlags != null && clearFlags.isPageCount(), info::setPageCount);
         helper.copyLanguage(clearFlags != null && clearFlags.isLanguage(), info::setLanguageISO);
-        
+
         helper.copyAuthors(clearFlags != null && clearFlags.isAuthors(), set -> {
             info.setWriter(joinStrings(set));
             info.setPenciller(null);
@@ -206,7 +213,7 @@ public class CbxMetadataWriter implements MetadataWriter {
         helper.copyCategories(clearFlags != null && clearFlags.isCategories(), set -> {
             info.setGenre(joinStrings(set));
         });
-        
+
         // Tags - separate from Genre per Anansi v2.1
         if (metadata.getTags() != null && !metadata.getTags().isEmpty()) {
             info.setTags(joinStrings(metadata.getTags().stream().map(TagEntity::getName).collect(Collectors.toSet())));
@@ -249,7 +256,7 @@ public class CbxMetadataWriter implements MetadataWriter {
         // Notes - Custom Metadata
         StringBuilder notesBuilder = new StringBuilder();
         String existingNotes = info.getNotes();
-        
+
         // Preserve existing notes that don't start with [BookLore
         if (existingNotes != null && !existingNotes.isBlank()) {
             String preservedRules = existingNotes.lines()
@@ -268,12 +275,12 @@ public class CbxMetadataWriter implements MetadataWriter {
             appendBookLoreTag(notesBuilder, "Tags", joinStrings(metadata.getTags().stream().map(TagEntity::getName).collect(Collectors.toSet())));
         }
         appendBookLoreTag(notesBuilder, "Subtitle", metadata.getSubtitle());
-        
+
         if (metadata.getIsbn13() != null && !metadata.getIsbn13().isBlank()) {
             info.setGtin(metadata.getIsbn13());
         }
         appendBookLoreTag(notesBuilder, "ISBN10", metadata.getIsbn10());
-        
+
         appendBookLoreTag(notesBuilder, "AmazonRating", metadata.getAmazonRating());
         appendBookLoreTag(notesBuilder, "GoodreadsRating", metadata.getGoodreadsRating());
         appendBookLoreTag(notesBuilder, "HardcoverRating", metadata.getHardcoverRating());
@@ -288,7 +295,7 @@ public class CbxMetadataWriter implements MetadataWriter {
         appendBookLoreTag(notesBuilder, "GoodreadsId", metadata.getGoodreadsId());
         appendBookLoreTag(notesBuilder, "ASIN", metadata.getAsin());
         appendBookLoreTag(notesBuilder, "ComicvineId", metadata.getComicvineId());
-        
+
         // Comic-specific metadata from ComicMetadataEntity
         ComicMetadataEntity comic = metadata.getComicMetadata();
         if (comic != null) {
@@ -296,7 +303,7 @@ public class CbxMetadataWriter implements MetadataWriter {
             if (comic.getVolumeNumber() != null) {
                 info.setVolume(comic.getVolumeNumber());
             }
-            
+
             // Alternate Series
             if (comic.getAlternateSeries() != null && !comic.getAlternateSeries().isBlank()) {
                 info.setAlternateSeries(comic.getAlternateSeries());
@@ -304,27 +311,27 @@ public class CbxMetadataWriter implements MetadataWriter {
             if (comic.getAlternateIssue() != null && !comic.getAlternateIssue().isBlank()) {
                 info.setAlternateNumber(comic.getAlternateIssue());
             }
-            
+
             // Story Arc
             if (comic.getStoryArc() != null && !comic.getStoryArc().isBlank()) {
                 info.setStoryArc(comic.getStoryArc());
             }
-            
+
             // Format
             if (comic.getFormat() != null && !comic.getFormat().isBlank()) {
                 info.setFormat(comic.getFormat());
             }
-            
+
             // Imprint
             if (comic.getImprint() != null && !comic.getImprint().isBlank()) {
                 info.setImprint(comic.getImprint());
             }
-            
+
             // BlackAndWhite (Yes/No)
             if (comic.getBlackAndWhite() != null) {
                 info.setBlackAndWhite(comic.getBlackAndWhite() ? "Yes" : "No");
             }
-            
+
             // Manga / Reading Direction
             if (comic.getManga() != null && comic.getManga()) {
                 if (comic.getReadingDirection() != null && "RTL".equalsIgnoreCase(comic.getReadingDirection())) {
@@ -335,7 +342,7 @@ public class CbxMetadataWriter implements MetadataWriter {
             } else if (comic.getManga() != null) {
                 info.setManga("No");
             }
-            
+
             // Characters (comma-separated)
             if (comic.getCharacters() != null && !comic.getCharacters().isEmpty()) {
                 String chars = comic.getCharacters().stream()
@@ -343,7 +350,7 @@ public class CbxMetadataWriter implements MetadataWriter {
                         .collect(Collectors.joining(", "));
                 info.setCharacters(chars);
             }
-            
+
             // Teams (comma-separated)
             if (comic.getTeams() != null && !comic.getTeams().isEmpty()) {
                 String teams = comic.getTeams().stream()
@@ -351,7 +358,7 @@ public class CbxMetadataWriter implements MetadataWriter {
                         .collect(Collectors.joining(", "));
                 info.setTeams(teams);
             }
-            
+
             // Locations (comma-separated)
             if (comic.getLocations() != null && !comic.getLocations().isEmpty()) {
                 String locs = comic.getLocations().stream()
@@ -359,7 +366,7 @@ public class CbxMetadataWriter implements MetadataWriter {
                         .collect(Collectors.joining(", "));
                 info.setLocations(locs);
             }
-            
+
             // Creators by role (overrides the author-based writer if present)
             if (comic.getCreatorMappings() != null && !comic.getCreatorMappings().isEmpty()) {
                 String pencillers = getCreatorsByRole(comic, ComicCreatorRole.PENCILLER);
@@ -368,7 +375,7 @@ public class CbxMetadataWriter implements MetadataWriter {
                 String letterers = getCreatorsByRole(comic, ComicCreatorRole.LETTERER);
                 String coverArtists = getCreatorsByRole(comic, ComicCreatorRole.COVER_ARTIST);
                 String editors = getCreatorsByRole(comic, ComicCreatorRole.EDITOR);
-                
+
                 if (!pencillers.isEmpty()) info.setPenciller(pencillers);
                 if (!inkers.isEmpty()) info.setInker(inkers);
                 if (!colorists.isEmpty()) info.setColorist(colorists);
@@ -376,21 +383,21 @@ public class CbxMetadataWriter implements MetadataWriter {
                 if (!coverArtists.isEmpty()) info.setCoverArtist(coverArtists);
                 if (!editors.isEmpty()) info.setEditor(editors);
             }
-            
+
             // Store comic-specific metadata in notes as well
             appendBookLoreTag(notesBuilder, "VolumeName", comic.getVolumeName());
             appendBookLoreTag(notesBuilder, "StoryArcNumber", comic.getStoryArcNumber());
             appendBookLoreTag(notesBuilder, "IssueNumber", comic.getIssueNumber());
         }
-        
+
         // Age Rating (from BookMetadataEntity - mapped to ComicInfo AgeRating format)
         if (metadata.getAgeRating() != null) {
             info.setAgeRating(mapAgeRatingToComicInfo(metadata.getAgeRating()));
         }
-        
+
         info.setNotes(!notesBuilder.isEmpty() ? notesBuilder.toString() : null);
     }
-    
+
     private String getCreatorsByRole(ComicMetadataEntity comic, ComicCreatorRole role) {
         if (comic.getCreatorMappings() == null) return "";
         return comic.getCreatorMappings().stream()
@@ -398,7 +405,7 @@ public class CbxMetadataWriter implements MetadataWriter {
                 .map(m -> m.getCreator().getName())
                 .collect(Collectors.joining(", "));
     }
-    
+
     private String mapAgeRatingToComicInfo(Integer ageRating) {
         // Map numeric age rating to ComicInfo AgeRating string values
         if (ageRating == null) return null;
@@ -453,7 +460,7 @@ public class CbxMetadataWriter implements MetadataWriter {
         } catch (Exception _) {
             log.debug("Custom indentation property not supported via 'com.sun.xml.bind.indentString'");
         }
-        
+
         ByteArrayOutputStream outputStream = new ByteArrayOutputStream();
         marshaller.marshal(comicInfo, outputStream);
         return outputStream.toByteArray();
@@ -650,7 +657,7 @@ public class CbxMetadataWriter implements MetadataWriter {
     private void appendBookLoreTag(StringBuilder sb, String tag, Number value) {
         if (value != null) {
             if (sb.length() > 0) sb.append("\n");
-            String formatted = (value instanceof Double || value instanceof Float) 
+            String formatted = (value instanceof Double || value instanceof Float)
                     ? String.format(Locale.US, "%.2f", value.doubleValue())
                     : value.toString();
             sb.append("[BookLore:").append(tag).append("] ").append(formatted);

@@ -58,6 +58,14 @@ public enum TaskType {
             true,
             "Refresh Metadata",
             "Updates metadata information for your selected books."
+    ),
+    CONVERT_TO_CBZ(
+            true,
+            true,
+            false,
+            true,
+            "Convert to CBZ",
+            "Converts the book to CBZ comic book archive format."
     );
 
     @Getter
