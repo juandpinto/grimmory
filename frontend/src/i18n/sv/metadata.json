@@ -399,7 +399,10 @@
     "audiobookAbridged": "Förkortad",
     "firstAuthorBadge": "MAIN",
     "menuMarkPhysical": "Markera som fysisk",
-    "menuUnmarkPhysical": "Avmarkera som fysisk"
+    "menuUnmarkPhysical": "Avmarkera som fysisk",
+    "menuConvertToCbz": "",
+    "convertToCbzStarted": "",
+    "convertToCbzFailed": ""
   },
   "sidecar": {
     "title": "Sidecar-metadata",

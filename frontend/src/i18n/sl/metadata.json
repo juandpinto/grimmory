@@ -400,7 +400,10 @@
     "audiobookAbridged": "Skrajšano",
     "firstAuthorBadge": "GLAVNA",
     "menuMarkPhysical": "Označi kot fizično",
-    "menuUnmarkPhysical": "Odznači kot fizično"
+    "menuUnmarkPhysical": "Odznači kot fizično",
+    "menuConvertToCbz": "",
+    "convertToCbzStarted": "",
+    "convertToCbzFailed": ""
   },
   "sidecar": {
     "title": "Sidecar metapodatki",

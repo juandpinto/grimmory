@@ -269,6 +269,35 @@ export class MetadataViewerComponent implements OnInit, AfterViewChecked {
       });
     }
 
+    const primaryFileExt = (book.primaryFile?.fileName ?? '').split('.').pop()?.toLowerCase() ?? '';
+    const isConvertibleToCbz =
+      (book.primaryFile?.bookType === 'CBX' && (primaryFileExt === 'cbr' || primaryFileExt === 'cb7')) ||
+      book.primaryFile?.bookType === 'EPUB' ||
+      book.primaryFile?.bookType === 'PDF';
+
+    if (isConvertibleToCbz && (permissions?.canManageLibrary || permissions?.admin)) {
+      items.push({
+        label: this.t.translate('metadata.viewer.menuConvertToCbz'),
+        icon: 'pi pi-images',
+        command: () => {
+          this.bookService.convertToCbz(book.id).subscribe({
+            next: () => this.messageService.add({
+              severity: 'info',
+              summary: this.t.translate('metadata.viewer.menuConvertToCbz'),
+              detail: this.t.translate('metadata.viewer.convertToCbzStarted'),
+              life: 4000,
+            }),
+            error: () => this.messageService.add({
+              severity: 'error',
+              summary: this.t.translate('metadata.viewer.menuConvertToCbz'),
+              detail: this.t.translate('metadata.viewer.convertToCbzFailed'),
+              life: 5000,
+            }),
+          });
+        }
+      });
+    }
+
     const hasFiles = this.hasAnyFiles(book);
 
     if (hasFiles && (permissions?.canManageLibrary || permissions?.admin) && appSettings?.diskType === 'LOCAL') {
