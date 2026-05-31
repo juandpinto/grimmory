@@ -10,6 +10,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.booklore.model.enums.TaskType;
 import org.booklore.task.options.LibraryRescanOptions;
+import org.booklore.task.options.ConvertToCbzOptions;
 
 @Data
 @Builder
@@ -26,6 +27,7 @@ public class TaskCreateRequest {
     @JsonSubTypes({
             @JsonSubTypes.Type(value = LibraryRescanOptions.class, name = "REFRESH_LIBRARY_METADATA"),
             @JsonSubTypes.Type(value = MetadataRefreshRequest.class, name = "REFRESH_METADATA_MANUAL"),
+            @JsonSubTypes.Type(value = ConvertToCbzOptions.class, name = "CONVERT_TO_CBZ"),
     })
     private Object options;
 

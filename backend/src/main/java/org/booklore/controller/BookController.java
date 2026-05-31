@@ -23,6 +23,11 @@ import org.booklore.service.book.BookService;
 import org.booklore.service.book.BookUpdateService;
 import org.booklore.service.book.DuplicateDetectionService;
 import org.booklore.service.book.PhysicalBookService;
+import org.booklore.service.task.TaskService;
+import org.booklore.model.dto.request.TaskCreateRequest;
+import org.booklore.model.dto.response.TaskCreateResponse;
+import org.booklore.model.enums.TaskType;
+import org.booklore.task.options.ConvertToCbzOptions;
 import org.booklore.service.metadata.BookMetadataService;
 import org.booklore.service.progress.ReadingProgressService;
 import org.booklore.service.recommender.BookRecommendationService;
@@ -65,6 +70,7 @@ public class BookController {
     private final ReadingProgressService readingProgressService;
     private final PhysicalBookService physicalBookService;
     private final DuplicateDetectionService duplicateDetectionService;
+    private final TaskService taskService;
 
     @Operation(summary = "Get all books", description = "Retrieve a list of all books. Optionally include descriptions.")
     @ApiResponse(responseCode = "200", description = "List of books returned successfully")
@@ -337,5 +343,23 @@ public class BookController {
             @Parameter(description = "ID of the target book to attach the files to") @PathVariable Long targetBookId,
             @Parameter(description = "Request containing source book IDs and delete option") @RequestBody @Valid AttachBookFileRequest request) {
         return ResponseEntity.ok(bookFileAttachmentService.attachBookFiles(targetBookId, request.getSourceBookIds(), request.isMoveFiles()));
+    }
+
+    @Operation(summary = "Convert book to CBZ", description = "Asynchronously converts the book's primary file to CBZ comic archive format.")
+    @ApiResponses({
+            @ApiResponse(responseCode = "202", description = "Conversion task accepted"),
+            @ApiResponse(responseCode = "403", description = "Forbidden - requires library management permission"),
+            @ApiResponse(responseCode = "404", description = "Book not found")
+    })
+    @PostMapping("/{bookId}/convert-to-cbz")
+    @PreAuthorize("@securityUtil.canManageLibrary() or @securityUtil.isAdmin()")
+    public ResponseEntity<TaskCreateResponse> convertToCbz(
+            @Parameter(description = "ID of the book to convert") @PathVariable long bookId) {
+        TaskCreateRequest request = TaskCreateRequest.builder()
+                .taskType(TaskType.CONVERT_TO_CBZ)
+                .options(ConvertToCbzOptions.builder().bookId(bookId).build())
+                .build();
+        TaskCreateResponse response = taskService.runAsUser(request);
+        return ResponseEntity.status(org.springframework.http.HttpStatus.ACCEPTED).body(response);
     }
 }
