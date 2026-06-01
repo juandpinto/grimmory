@@ -41,7 +41,6 @@ public class CbxNormalizationService {
 
     private final ArchiveService archiveService;
     private final CbxMetadataWriter cbxMetadataWriter;
-    private final MimeDetector mimeDetector;
 
     /**
      * Converts a CBR or CB7 archive to CBZ format.
@@ -118,7 +117,7 @@ public class CbxNormalizationService {
         try {
             String mime;
             try (ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes)) {
-                mime = mimeDetector.detect(bais);
+                mime = MimeDetector.detect(bais);
             }
             if ("image/jpeg".equals(mime)) {
                 return imageBytes;

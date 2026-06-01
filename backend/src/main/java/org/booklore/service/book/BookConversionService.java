@@ -57,11 +57,17 @@ public class BookConversionService {
      * @param bookId  ID of the book to convert
      * @param taskId  task ID for progress reporting
      */
+    @Transactional
     public void convertToCbz(Long bookId, String taskId) {
         String username = authenticationService.getAuthenticatedUser().getUsername();
         sendProgress(taskId, username, "Starting conversion…", 0, TaskStatus.IN_PROGRESS);
 
         BookEntity book = bookRepository.findByIdWithBookFiles(bookId)
+                .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
+
+        // Load metadata with all lazy collections eagerly so conversion services
+        // can access authors, categories, tags, etc. in the async thread.
+        BookEntity bookWithMetadata = bookRepository.findByIdWithMetadata(bookId)
                 .orElseThrow(() -> ApiError.BOOK_NOT_FOUND.createException(bookId));
 
         BookFileEntity primaryFile = book.getPrimaryBookFile();
@@ -87,20 +93,20 @@ public class BookConversionService {
                         throw new IllegalStateException("Book is already in CBZ format");
                     }
                     sendProgress(taskId, username, "Re-archiving " + ext.toUpperCase() + " → CBZ…", 10, TaskStatus.IN_PROGRESS);
-                    Path cbzPath = cbxNormalizationService.convert(sourcePath, book.getMetadata());
+                    Path cbzPath = cbxNormalizationService.convert(sourcePath, bookWithMetadata.getMetadata());
                     sendProgress(taskId, username, "Updating database record…", 80, TaskStatus.IN_PROGRESS);
                     replacePrimaryFile(primaryFile, cbzPath, sourcePath);
                     Files.deleteIfExists(sourcePath);
                 }
                 case EPUB -> {
                     sendProgress(taskId, username, "Converting EPUB → CBZ…", 10, TaskStatus.IN_PROGRESS);
-                    Path cbzPath = epubToCbzConversionService.convert(sourcePath, book.getMetadata());
+                    Path cbzPath = epubToCbzConversionService.convert(sourcePath, bookWithMetadata.getMetadata());
                     sendProgress(taskId, username, "Saving CBZ as alternative format…", 85, TaskStatus.IN_PROGRESS);
                     addAlternativeFormat(book, cbzPath, primaryFile.getFileSubPath(), "CBZ version of EPUB");
                 }
                 case PDF -> {
                     sendProgress(taskId, username, "Rendering PDF pages → CBZ…", 10, TaskStatus.IN_PROGRESS);
-                    Path cbzPath = pdfToCbzConversionService.convert(sourcePath, book.getMetadata());
+                    Path cbzPath = pdfToCbzConversionService.convert(sourcePath, bookWithMetadata.getMetadata());
                     sendProgress(taskId, username, "Saving CBZ as alternative format…", 85, TaskStatus.IN_PROGRESS);
                     addAlternativeFormat(book, cbzPath, primaryFile.getFileSubPath(), "CBZ version of PDF");
                 }
@@ -112,8 +118,8 @@ public class BookConversionService {
             throw new RuntimeException("CBZ conversion failed: " + e.getMessage(), e);
         }
 
-        // Notify frontend to refresh the book
-        BookEntity refreshed = bookRepository.findByIdWithBookFiles(bookId).orElse(book);
+        // Notify frontend to refresh the book (use metadata-eager fetch so mapper can access lazy collections)
+        BookEntity refreshed = bookRepository.findByIdFull(bookId).orElse(bookWithMetadata);
         notificationService.sendMessageToUser(username, Topic.BOOK_UPDATE, bookMapper.toBookWithDescription(refreshed, false));
 
         sendProgress(taskId, username, "Conversion complete.", 100, TaskStatus.COMPLETED);
