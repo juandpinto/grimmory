@@ -9,6 +9,7 @@ import org.booklore.model.entity.*;
 import org.booklore.model.enums.ReadStatus;
 import org.booklore.repository.*;
 import org.booklore.service.hardcover.HardcoverSyncService;
+import org.booklore.service.readthrough.BookReadthroughService;
 import org.booklore.util.koreader.EpubCfiService;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.context.SecurityContextHolder;
@@ -31,6 +32,7 @@ public class KoreaderService {
     private final UserRepository userRepository;
     private final KoreaderUserRepository koreaderUserRepository;
     private final HardcoverSyncService hardcoverSyncService;
+    private final BookReadthroughService bookReadthroughService;
     private final EpubCfiService epubCfiService;
 
     public ResponseEntity<Map<String, String>> authorizeUser() {
@@ -77,6 +79,14 @@ public class KoreaderService {
         updateProgressData(userProgress, koProgress, authDetails.isSyncWithWebReader(), book);
 
         progressRepository.save(userProgress);
+
+        if (userProgress.getReadStatus() == ReadStatus.READ && previousReadStatus != ReadStatus.READ) {
+            java.time.LocalDate finishedOn = userProgress.getDateFinished() != null
+                    ? userProgress.getDateFinished().atZone(java.time.ZoneOffset.UTC).toLocalDate()
+                    : java.time.LocalDate.now();
+            bookReadthroughService.createReadthroughIfNewCompletion(
+                    user.getId(), book.getId(), previousReadStatus, userProgress.getReadStatus(), finishedOn);
+        }
 
         // Also save to file-level progress table (dual-write)
         saveToFileProgress(user, book, userProgress);

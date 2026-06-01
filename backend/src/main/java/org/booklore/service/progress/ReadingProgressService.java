@@ -27,8 +27,11 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Instant;
+import java.time.LocalDate;
+import java.time.ZoneOffset;
 import java.util.*;
 import java.util.stream.Collectors;
+import org.booklore.service.readthrough.BookReadthroughService;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -47,6 +50,7 @@ public class ReadingProgressService {
     private final AuthenticationService authenticationService;
     private final KoboReadingStateService koboReadingStateService;
     private final HardcoverSyncService hardcoverSyncService;
+    private final BookReadthroughService bookReadthroughService;
 
     // ==================== Methods from UserProgressService ====================
 
@@ -208,6 +212,7 @@ public class ReadingProgressService {
                 .findByUserIdAndBookId(user.getId(), book.getId())
                 .orElseGet(UserBookProgressEntity::new);
 
+        ReadStatus previousStatus = progress.getReadStatus();
         progress.setUser(userEntity);
         progress.setBook(book);
         progress.setLastReadTime(now);
@@ -268,6 +273,12 @@ public class ReadingProgressService {
         }
 
         userBookProgressRepository.save(progress);
+
+        bookReadthroughService.createReadthroughIfNewCompletion(
+                user.getId(), book.getId(), previousStatus, progress.getReadStatus(),
+                progress.getDateFinished() != null
+                        ? progress.getDateFinished().atZone(ZoneOffset.UTC).toLocalDate()
+                        : LocalDate.now());
 
         if (percentage != null) {
             hardcoverSyncService.syncProgressToHardcover(book.getId(), percentage, user.getId());

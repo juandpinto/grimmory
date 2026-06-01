@@ -18,6 +18,7 @@ import org.booklore.repository.UserBookFileProgressRepository;
 import org.booklore.repository.UserBookProgressRepository;
 import org.booklore.service.book.BookService;
 import org.booklore.service.opds.MagicShelfBookService;
+import org.booklore.service.readthrough.BookReadthroughService;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -54,6 +55,7 @@ class AppBookServiceFilterOptionsTest {
     @Mock private BookService bookService;
     @Mock private MagicShelfBookService magicShelfBookService;
     @Mock private EntityManager entityManager;
+    @Mock private BookReadthroughService bookReadthroughService;
 
     private AppBookService service;
 
@@ -64,7 +66,7 @@ class AppBookServiceFilterOptionsTest {
         service = new AppBookService(
                 bookRepository, userBookProgressRepository, userBookFileProgressRepository,
                 shelfRepository, authenticationService, mobileBookMapper,
-                bookService, magicShelfBookService, entityManager
+                bookService, magicShelfBookService, entityManager, bookReadthroughService
         );
     }
 

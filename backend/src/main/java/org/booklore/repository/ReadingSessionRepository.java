@@ -364,4 +364,22 @@ public interface ReadingSessionRepository extends JpaRepository<ReadingSessionEn
             @Param("userId") Long userId,
             @Param("periodStart") Instant periodStart,
             @Param("periodEnd") Instant periodEnd);
+
+    /**
+     * Finds the earliest reading session start time for a user+book combination,
+     * optionally restricted to sessions that started after a given instant.
+     * Used to auto-populate started_on when creating a readthrough.
+     */
+    @Query("""
+            SELECT MIN(rs.startTime)
+            FROM ReadingSessionEntity rs
+            WHERE rs.user.id = :userId
+            AND rs.book.id = :bookId
+            AND rs.bookType != org.booklore.model.enums.BookFileType.AUDIOBOOK
+            AND (:after IS NULL OR rs.startTime > :after)
+            """)
+    Instant findEarliestSessionStartAfter(
+            @Param("userId") Long userId,
+            @Param("bookId") Long bookId,
+            @Param("after") Instant after);
 }

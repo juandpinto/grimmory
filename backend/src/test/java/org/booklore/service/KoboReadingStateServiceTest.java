@@ -17,6 +17,7 @@ import org.booklore.repository.KoboReadingStateRepository;
 import org.booklore.repository.UserBookProgressRepository;
 import org.booklore.repository.UserRepository;
 import org.booklore.service.hardcover.HardcoverSyncService;
+import org.booklore.service.readthrough.BookReadthroughService;
 import org.booklore.service.kobo.KoboReadingStateBuilder;
 import org.booklore.service.kobo.KoboReadingStateService;
 import org.booklore.service.kobo.KoboSettingsService;
@@ -73,6 +74,9 @@ class KoboReadingStateServiceTest {
 
     @Mock
     private HardcoverSyncService hardcoverSyncService;
+
+    @Mock
+    private BookReadthroughService bookReadthroughService;
 
     @Mock
     private UserBookFileProgressRepository fileProgressRepository;

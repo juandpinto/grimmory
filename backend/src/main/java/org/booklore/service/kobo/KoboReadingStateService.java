@@ -17,6 +17,7 @@ import org.booklore.model.entity.UserBookProgressEntity;
 import org.booklore.model.enums.ReadStatus;
 import org.booklore.repository.*;
 import org.booklore.service.hardcover.HardcoverSyncService;
+import org.booklore.service.readthrough.BookReadthroughService;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -56,6 +57,7 @@ public class KoboReadingStateService {
     private final KoboSettingsService koboSettingsService;
     private final KoboReadingStateBuilder readingStateBuilder;
     private final HardcoverSyncService hardcoverSyncService;
+    private final BookReadthroughService bookReadthroughService;
 
     @Transactional
     public KoboReadingStateResponse saveReadingState(List<KoboReadingState> readingStates) {
@@ -244,6 +246,15 @@ public class KoboReadingStateService {
             }
 
             progressRepository.save(progress);
+
+            if (progress.getReadStatus() == org.booklore.model.enums.ReadStatus.READ
+                    && previousReadStatus != org.booklore.model.enums.ReadStatus.READ) {
+                java.time.LocalDate finishedOn = progress.getDateFinished() != null
+                        ? progress.getDateFinished().atZone(java.time.ZoneOffset.UTC).toLocalDate()
+                        : java.time.LocalDate.now();
+                bookReadthroughService.createReadthroughIfNewCompletion(
+                        userId, book.getId(), previousReadStatus, progress.getReadStatus(), finishedOn);
+            }
 
             // Sync progress to Hardcover asynchronously (if enabled for this user)
             // But only if the progress percentage has changed from last time, or the read status has changed

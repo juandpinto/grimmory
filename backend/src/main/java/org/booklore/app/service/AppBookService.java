@@ -27,6 +27,7 @@ import org.booklore.repository.UserBookFileProgressRepository;
 import org.booklore.repository.UserBookProgressRepository;
 import org.booklore.service.book.BookService;
 import org.booklore.service.opds.MagicShelfBookService;
+import org.booklore.service.readthrough.BookReadthroughService;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -65,6 +66,7 @@ public class AppBookService {
     private final BookService bookService;
     private final MagicShelfBookService magicShelfBookService;
     private final EntityManager entityManager;
+    private final BookReadthroughService bookReadthroughService;
 
     private final Cache<String, AppFilterOptions> filterOptionsCache = Caffeine.newBuilder()
             .expireAfterWrite(Duration.ofSeconds(30))
@@ -79,7 +81,8 @@ public class AppBookService {
                           AppBookMapper mobileBookMapper,
                           BookService bookService,
                           MagicShelfBookService magicShelfBookService,
-                          EntityManager entityManager) {
+                          EntityManager entityManager,
+                          BookReadthroughService bookReadthroughService) {
         this.bookRepository = bookRepository;
         this.userBookProgressRepository = userBookProgressRepository;
         this.userBookFileProgressRepository = userBookFileProgressRepository;
@@ -89,6 +92,7 @@ public class AppBookService {
         this.bookService = bookService;
         this.magicShelfBookService = magicShelfBookService;
         this.entityManager = entityManager;
+        this.bookReadthroughService = bookReadthroughService;
     }
 
     public AppPageResponse<AppBookSummary> getBooks(BookListRequest req) {
@@ -725,6 +729,7 @@ public class AppBookService {
     public void updateReadStatus(Long bookId, ReadStatus status) {
         UserBookProgressEntity progress = validateAccessAndGetProgress(bookId);
 
+        ReadStatus previousStatus = progress.getReadStatus();
         progress.setReadStatus(status);
         progress.setReadStatusModifiedTime(Instant.now());
 
@@ -733,6 +738,10 @@ public class AppBookService {
         }
 
         userBookProgressRepository.save(progress);
+
+        bookReadthroughService.createReadthroughIfNewCompletion(
+                progress.getUser().getId(), bookId, previousStatus, status,
+                progress.getDateFinished().atZone(java.time.ZoneOffset.UTC).toLocalDate());
     }
 
     @Transactional

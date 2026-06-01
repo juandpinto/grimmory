@@ -25,6 +25,7 @@ import org.booklore.repository.UserBookFileProgressRepository;
 import org.booklore.repository.UserBookProgressRepository;
 import org.booklore.service.book.BookService;
 import org.booklore.service.opds.MagicShelfBookService;
+import org.booklore.service.readthrough.BookReadthroughService;
 
 import java.util.List;
 import java.util.Optional;
@@ -47,6 +48,7 @@ class AppBookServiceProgressTest {
     @Mock private BookService bookService;
     @Mock private MagicShelfBookService magicShelfBookService;
     @Mock private EntityManager entityManager;
+    @Mock private BookReadthroughService bookReadthroughService;
 
     private AppBookService service;
 
@@ -59,7 +61,7 @@ class AppBookServiceProgressTest {
         service = new AppBookService(
                 bookRepository, userBookProgressRepository, userBookFileProgressRepository,
                 shelfRepository, authenticationService, mobileBookMapper,
-                bookService, magicShelfBookService, entityManager
+                bookService, magicShelfBookService, entityManager, bookReadthroughService
         );
     }
 
