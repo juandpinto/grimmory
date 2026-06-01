@@ -13,12 +13,13 @@ export interface MonthlyCount {
 
 export interface YearlySummaryResponse {
   year: number;
-  goal: ReadingGoalDto | null;
+  goal: number | null;
   booksRead: number;
-  totalPages: number;
-  currentPace: number;
+  pagesRead: number;
+  avgDaysPerBook: number | null;
+  expectedByPace: number | null;
   monthlyBreakdown: MonthlyCount[];
-  books: ReadthroughSummaryDto[];
+  readthroughs: ReadthroughSummaryDto[];
 }
 
 export interface ReadingGoalRequest {

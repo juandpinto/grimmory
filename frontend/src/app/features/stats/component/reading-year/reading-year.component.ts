@@ -9,19 +9,27 @@ import {
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {DecimalPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
+import {Router} from '@angular/router';
 import {BaseChartDirective} from 'ng2-charts';
 import {ChartConfiguration, ChartData} from 'chart.js';
 import {ConfirmationService, MessageService} from 'primeng/api';
+import {AutoComplete} from 'primeng/autocomplete';
 import {Button} from 'primeng/button';
+import {DatePicker} from 'primeng/datepicker';
 import {Dialog} from 'primeng/dialog';
 import {InputNumber} from 'primeng/inputnumber';
 import {ProgressSpinner} from 'primeng/progressspinner';
 import {ConfirmDialog} from 'primeng/confirmdialog';
+import {Textarea} from 'primeng/textarea';
 import {Tooltip} from 'primeng/tooltip';
 import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
+import {BookService} from '../../../book/service/book.service';
+import {Book} from '../../../book/model/book.model';
+import {UrlHelperService} from '../../../../shared/service/url-helper.service';
 import {ReadingGoalService} from './service/reading-goal.service';
+import {ReadthroughService} from './service/readthrough.service';
 import {YearlySummaryResponse} from './model/reading-goal.model';
-import {ReadthroughSummaryDto} from './model/readthrough.model';
+import {BookReadthroughRequest, ReadthroughSummaryDto} from './model/readthrough.model';
 
 const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
 
@@ -31,12 +39,15 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
   imports: [
     DecimalPipe,
     FormsModule,
+    AutoComplete,
     BaseChartDirective,
     Button,
+    DatePicker,
     Dialog,
     InputNumber,
     ProgressSpinner,
     ConfirmDialog,
+    Textarea,
     Tooltip,
     TranslocoDirective,
   ],
@@ -46,10 +57,16 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
 })
 export class ReadingYearComponent implements OnInit {
   private readonly goalService = inject(ReadingGoalService);
+  private readonly readthroughService = inject(ReadthroughService);
+  private readonly bookService = inject(BookService);
+  private readonly urlHelper = inject(UrlHelperService);
+  private readonly router = inject(Router);
   private readonly confirmationService = inject(ConfirmationService);
   private readonly messageService = inject(MessageService);
   private readonly t = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
+
+  private readonly failedCoverIds = signal(new Set<number>());
 
   readonly currentYear = new Date().getFullYear();
   year = signal(this.currentYear);
@@ -59,6 +76,14 @@ export class ReadingYearComponent implements OnInit {
   // Goal dialog
   showGoalDialog = false;
   goalInput: number = 0;
+
+  // Log Read dialog
+  showLogReadDialog = false;
+  logReadOption: {book: Book; label: string} | null = null;
+  logReadFilteredOptions: {book: Book; label: string}[] = [];
+  logReadStartedOn: Date | null = null;
+  logReadFinishedOn: Date | null = null;
+  logReadNotes = '';
 
   // Chart config
   readonly chartType = 'bar' as const;
@@ -97,15 +122,15 @@ export class ReadingYearComponent implements OnInit {
   // Computed helpers
   readonly goal = computed(() => this.summary()?.goal ?? null);
   readonly booksRead = computed(() => this.summary()?.booksRead ?? 0);
-  readonly totalPages = computed(() => this.summary()?.totalPages ?? 0);
-  readonly currentPace = computed(() => this.summary()?.currentPace ?? 0);
-  readonly books = computed(() => this.summary()?.books ?? []);
+  readonly totalPages = computed(() => this.summary()?.pagesRead ?? 0);
+  readonly currentPace = computed(() => this.summary()?.expectedByPace ?? 0);
+  readonly readthroughs = computed(() => this.summary()?.readthroughs ?? []);
   readonly isCurrentYear = computed(() => this.year() === this.currentYear);
 
   readonly goalProgress = computed(() => {
     const g = this.goal();
     if (!g) return 0;
-    return Math.min(1, this.booksRead() / g.bookGoal);
+    return Math.min(1, this.booksRead() / g);
   });
 
   readonly goalProgressPct = computed(() =>
@@ -182,7 +207,7 @@ export class ReadingYearComponent implements OnInit {
   }
 
   openGoalDialog(): void {
-    this.goalInput = this.goal()?.bookGoal ?? 0;
+    this.goalInput = this.goal() ?? 0;
     this.showGoalDialog = true;
   }
 
@@ -222,7 +247,7 @@ export class ReadingYearComponent implements OnInit {
   }
 
   formatDate(isoDate: string): string {
-    return new Date(isoDate).toLocaleDateString(undefined, {
+    return new Date(isoDate + 'T12:00:00').toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',
@@ -230,10 +255,71 @@ export class ReadingYearComponent implements OnInit {
   }
 
   getCoverUrl(book: ReadthroughSummaryDto): string | null {
-    return book.bookCoverUrl ?? null;
+    if (this.failedCoverIds().has(book.readthroughId)) return null;
+    return this.urlHelper.getDirectThumbnailUrl(book.bookId);
+  }
+
+  onCoverError(book: ReadthroughSummaryDto): void {
+    this.failedCoverIds.update(s => { const n = new Set(s); n.add(book.readthroughId); return n; });
+  }
+
+  goToHistory(book: ReadthroughSummaryDto): void {
+    this.router.navigate(['/book', book.bookId], {queryParams: {tab: 'history'}});
   }
 
   getAuthors(book: ReadthroughSummaryDto): string {
-    return book.authors?.join(', ') ?? '';
+    return book.authors ?? '';
+  }
+
+  getBookAuthors(book: Book): string {
+    return book.metadata?.authors?.join(', ') ?? '';
+  }
+
+  filterLogReadBooks(event: {query: string}): void {
+    const q = event.query.toLowerCase();
+    this.logReadFilteredOptions = this.bookService.books()
+      .filter(b => (b.metadata?.title ?? '').toLowerCase().includes(q))
+      .map(b => ({book: b, label: b.metadata?.title ?? `Book #${b.id}`}))
+      .slice(0, 20);
+  }
+
+  openLogReadDialog(): void {
+    this.logReadOption = null;
+    this.logReadFilteredOptions = [];
+    this.logReadStartedOn = null;
+    this.logReadFinishedOn = null;
+    this.logReadNotes = '';
+    this.showLogReadDialog = true;
+  }
+
+  saveLogRead(): void {
+    if (!this.logReadOption || !this.logReadFinishedOn) return;
+    const request: BookReadthroughRequest = {
+      startedOn: this.logReadStartedOn ? this.toIsoDate(this.logReadStartedOn) : null,
+      finishedOn: this.toIsoDate(this.logReadFinishedOn),
+      notes: this.logReadNotes.trim() || null,
+    };
+    this.readthroughService.createReadthrough(this.logReadOption.book.id, request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.showLogReadDialog = false;
+          this.loadSummary();
+        },
+        error: () => {
+          this.messageService.add({
+            severity: 'error',
+            summary: this.t.translate('common.error'),
+            detail: this.t.translate('common.genericError'),
+          });
+        },
+      });
+  }
+
+  private toIsoDate(date: Date): string {
+    const y = date.getFullYear();
+    const m = String(date.getMonth() + 1).padStart(2, '0');
+    const d = String(date.getDate()).padStart(2, '0');
+    return `${y}-${m}-${d}`;
   }
 }

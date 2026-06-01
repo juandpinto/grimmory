@@ -1,8 +1,8 @@
 import {inject, Injectable} from '@angular/core';
 import {HttpClient} from '@angular/common/http';
 import {Observable} from 'rxjs';
-import {API_CONFIG} from '../../../../core/config/api-config';
-import {BookReadthroughDto, BookReadthroughRequest} from '../reading-year/model/readthrough.model';
+import {API_CONFIG} from '../../../../../core/config/api-config';
+import {BookReadthroughDto, BookReadthroughRequest} from '../model/readthrough.model';
 
 @Injectable({
   providedIn: 'root'

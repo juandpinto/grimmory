@@ -10,7 +10,6 @@ import {
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {FormsModule} from '@angular/forms';
-import {NgClass} from '@angular/common';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {Button} from 'primeng/button';
 import {TableModule} from 'primeng/table';
@@ -28,7 +27,6 @@ import {BookReadthroughDto} from '../../../../stats/component/reading-year/model
   standalone: true,
   imports: [
     FormsModule,
-    NgClass,
     Button,
     TableModule,
     Dialog,
@@ -95,8 +93,8 @@ export class BookReadingHistoryComponent implements OnInit, OnChanges {
   openForm(rt?: BookReadthroughDto): void {
     if (rt) {
       this.editingId = rt.id;
-      this.formStartedOn = rt.startedOn ? new Date(rt.startedOn) : null;
-      this.formFinishedOn = new Date(rt.finishedOn);
+      this.formStartedOn = rt.startedOn ? new Date(rt.startedOn + 'T12:00:00') : null;
+      this.formFinishedOn = new Date(rt.finishedOn + 'T12:00:00');
       this.formNotes = rt.notes ?? '';
     } else {
       this.editingId = null;
@@ -165,7 +163,7 @@ export class BookReadingHistoryComponent implements OnInit, OnChanges {
   }
 
   formatDate(isoDate: string): string {
-    return new Date(isoDate).toLocaleDateString(undefined, {
+    return new Date(isoDate + 'T12:00:00').toLocaleDateString(undefined, {
       year: 'numeric',
       month: 'short',
       day: 'numeric',

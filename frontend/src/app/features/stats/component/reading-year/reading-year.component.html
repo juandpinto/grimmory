@@ -53,7 +53,7 @@
                 transform="rotate(-90 60 60)">
               </circle>
               <text x="60" y="55" text-anchor="middle" class="ring-count">{{ booksRead() }}</text>
-              <text x="60" y="72" text-anchor="middle" class="ring-goal">{{ t('goal.ofGoal', {goal: goal()!.bookGoal}) }}</text>
+              <text x="60" y="72" text-anchor="middle" class="ring-goal">{{ t('goal.ofGoal', {goal: goal()}) }}</text>
             </svg>
             <div class="goal-pct">{{ goalProgressPct() }}%</div>
           </div>
@@ -141,15 +141,26 @@
 
     <!-- Book List -->
     <div class="book-list-card card">
-      <h3 class="section-title">{{ t('bookList.title') }}</h3>
-      @if (books().length === 0) {
+      <div class="section-header">
+        <h3 class="section-title">{{ t('bookList.title') }}</h3>
+        <p-button
+          icon="pi pi-plus"
+          [label]="t('bookList.logRead')"
+          severity="secondary"
+          size="small"
+          [text]="true"
+          (click)="openLogReadDialog()">
+        </p-button>
+      </div>
+      @if (readthroughs().length === 0) {
         <p class="empty-message">{{ t('summary.noBooks', {year: year()}) }}</p>
       } @else {
         <div class="book-list">
-          @for (book of books(); track book.readthroughId) {
-            <div class="book-item">
+          @for (book of readthroughs(); track book.readthroughId) {
+            <div class="book-item" (click)="goToHistory(book)" role="button" tabindex="0" (keydown.enter)="goToHistory(book)">
               @if (getCoverUrl(book)) {
-                <img [src]="getCoverUrl(book)!" [alt]="book.bookTitle ?? ''" class="book-cover" loading="lazy"/>
+                <img [src]="getCoverUrl(book)!" [alt]="book.bookTitle ?? ''" class="book-cover" loading="lazy"
+                  (error)="onCoverError(book)"/>
               } @else {
                 <div class="book-cover book-cover-placeholder">
                   <i class="pi pi-book"></i>
@@ -180,7 +191,7 @@
     [style]="{width: '360px'}"
     [draggable]="false"
     [resizable]="false">
-    <div class="goal-form">
+    <div class="goal-form" (keydown.enter)="saveGoal()">
       <label class="form-label">{{ t('goal.dialog.bookGoalLabel') }}</label>
       <p-inputNumber
         [(ngModel)]="goalInput"
@@ -190,12 +201,65 @@
         styleClass="w-full"
         [showButtons]="false">
       </p-inputNumber>
+      <div class="dialog-actions">
+        <p-button [label]="t('goal.dialog.cancel')" severity="secondary" [text]="true" (click)="showGoalDialog = false"></p-button>
+        <p-button [label]="t('goal.dialog.save')" (click)="saveGoal()"></p-button>
+      </div>
     </div>
-    <ng-template pTemplate="footer">
-      <p-button [label]="t('goal.dialog.cancel')" severity="secondary" [text]="true" (click)="showGoalDialog = false"></p-button>
-      <p-button [label]="t('goal.dialog.save')" [disabled]="!goalInput || goalInput < 1" (click)="saveGoal()"></p-button>
-    </ng-template>
+    <ng-template pTemplate="footer"></ng-template>
   </p-dialog>
 
   <p-confirmDialog></p-confirmDialog>
+
+  <!-- Log Read Dialog -->
+  <p-dialog
+    [(visible)]="showLogReadDialog"
+    [modal]="true"
+    [header]="t('logRead.dialog.title')"
+    [style]="{width: '480px'}"
+    [draggable]="false"
+    [resizable]="false">
+    <div class="log-read-form">
+      <div class="form-field">
+        <label class="form-label">{{ t('logRead.dialog.bookLabel') }}</label>
+        <p-autocomplete
+          [(ngModel)]="logReadOption"
+          [suggestions]="logReadFilteredOptions"
+          (completeMethod)="filterLogReadBooks($event)"
+          field="label"
+          [placeholder]="t('logRead.dialog.bookPlaceholder')"
+          [forceSelection]="true"
+          [minLength]="1"
+          styleClass="w-full"
+          appendTo="body">
+          <ng-template #item let-opt>
+            <div class="book-option">
+              <span>{{ opt.label }}</span>
+              @if (getBookAuthors(opt.book)) {
+                <small class="book-author-hint">{{ getBookAuthors(opt.book) }}</small>
+              }
+            </div>
+          </ng-template>
+        </p-autocomplete>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ t('logRead.dialog.startedOnLabel') }}</label>
+        <p-datepicker [(ngModel)]="logReadStartedOn" [showIcon]="true" [showClear]="true"
+          [maxDate]="logReadFinishedOn ?? undefined" appendTo="body" styleClass="w-full"></p-datepicker>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ t('logRead.dialog.finishedOnLabel') }}</label>
+        <p-datepicker [(ngModel)]="logReadFinishedOn" [showIcon]="true"
+          [minDate]="logReadStartedOn ?? undefined" appendTo="body" styleClass="w-full"></p-datepicker>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ t('logRead.dialog.notesLabel') }}</label>
+        <textarea pTextarea [(ngModel)]="logReadNotes" [placeholder]="t('logRead.dialog.notesPlaceholder')" rows="3" style="width:100%"></textarea>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button [label]="t('logRead.dialog.cancel')" severity="secondary" [text]="true" (click)="showLogReadDialog = false"></p-button>
+      <p-button [label]="t('logRead.dialog.save')" [disabled]="!logReadOption || !logReadFinishedOn" (click)="saveLogRead()"></p-button>
+    </ng-template>
+  </p-dialog>
 </div>

@@ -12,7 +12,7 @@ export interface ReadthroughSummaryDto {
   bookId: number;
   bookTitle: string | null;
   bookCoverUrl: string | null;
-  authors: string[];
+  authors: string | null;
   pageCount: number | null;
   startedOn: string | null;
   finishedOn: string;

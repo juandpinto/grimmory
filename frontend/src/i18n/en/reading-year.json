@@ -52,6 +52,20 @@
     "title": "Books Completed",
     "finishedOn": "Finished",
     "pages": "{{ count }} pages",
-    "unknownTitle": "Unknown Title"
+    "unknownTitle": "Unknown Title",
+    "logRead": "Log a Read"
+  },
+  "logRead": {
+    "dialog": {
+      "title": "Log a Read",
+      "bookLabel": "Book",
+      "bookPlaceholder": "Search your library...",
+      "startedOnLabel": "Started On (optional)",
+      "finishedOnLabel": "Finished On",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Any thoughts on this read...",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   }
 }
