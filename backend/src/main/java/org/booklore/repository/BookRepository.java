@@ -39,7 +39,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
     @Query("SELECT b FROM BookEntity b WHERE b.id = :id AND (b.deleted IS NULL OR b.deleted = false)")
     Optional<BookEntity> findByIdWithMetadata(@Param("id") Long id);
 
-    @EntityGraph(attributePaths = { "metadata", "metadata.authors", "metadata.categories", "metadata.moods", "metadata.tags", "metadata.comicMetadata", "bookFiles" })
+    @EntityGraph(attributePaths = { "metadata", "metadata.authors", "metadata.categories", "metadata.moods", "metadata.tags", "metadata.comicMetadata", "bookFiles", "shelves" })
     @Query("SELECT b FROM BookEntity b WHERE b.id = :id AND (b.deleted IS NULL OR b.deleted = false)")
     Optional<BookEntity> findByIdFull(@Param("id") Long id);
 
@@ -263,14 +263,14 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
      * Books without series name are grouped as "Unknown Series".
      */
     @Query("""
-            SELECT DISTINCT 
-                CASE 
+            SELECT DISTINCT
+                CASE
                     WHEN m.seriesName IS NOT NULL THEN m.seriesName
                     ELSE :unknownSeriesName
                 END as seriesName
             FROM BookEntity b
             LEFT JOIN b.metadata m
-            WHERE b.library.id = :libraryId 
+            WHERE b.library.id = :libraryId
             AND (b.deleted IS NULL OR b.deleted = false)
             ORDER BY seriesName
             """)
@@ -283,8 +283,8 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
      * Books without series name are grouped as "Unknown Series".
      */
     @Query("""
-            SELECT DISTINCT 
-                CASE 
+            SELECT DISTINCT
+                CASE
                     WHEN m.seriesName IS NOT NULL THEN m.seriesName
                     ELSE :unknownSeriesName
                 END as seriesName
@@ -300,8 +300,8 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
      * Each book without series gets its own entry (title or filename).
      */
     @Query("""
-            SELECT DISTINCT 
-                CASE 
+            SELECT DISTINCT
+                CASE
                     WHEN m.seriesName IS NOT NULL THEN m.seriesName
                     WHEN m.title IS NOT NULL THEN m.title
                     ELSE (
@@ -316,7 +316,7 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
                 END as seriesName
             FROM BookEntity b
             LEFT JOIN b.metadata m
-            WHERE b.library.id = :libraryId 
+            WHERE b.library.id = :libraryId
             AND (b.deleted IS NULL OR b.deleted = false)
             ORDER BY seriesName
             """)
@@ -327,8 +327,8 @@ public interface BookRepository extends JpaRepository<BookEntity, Long>, JpaSpec
      * Each book without series gets its own entry (title or filename).
      */
     @Query("""
-            SELECT DISTINCT 
-                CASE 
+            SELECT DISTINCT
+                CASE
                     WHEN m.seriesName IS NOT NULL THEN m.seriesName
                     WHEN m.title IS NOT NULL THEN m.title
                     ELSE (

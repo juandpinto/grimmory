@@ -56,13 +56,12 @@ public class EpubToCbzConversionService {
     private static final String COMIC_INFO_ENTRY = "ComicInfo.xml";
 
     private final CbxMetadataWriter cbxMetadataWriter;
-    private final MimeDetector mimeDetector;
 
     // -------------------------------------------------------------------------
     // Internal data carriers
     // -------------------------------------------------------------------------
 
-    private record ManifestItem(String id, String href, String mediaType) {}
+    private record ManifestItem(String id, String href, String mediaType, String properties) {}
 
     private record TocEntry(String title, int spineIndex) {}
 
@@ -152,7 +151,8 @@ public class EpubToCbzConversionService {
                 String mediaType = attrValue(item, "media-type");
                 if (id != null && href != null) {
                     String decodedHref = URLDecoder.decode(href, StandardCharsets.UTF_8);
-                    manifest.put(id, new ManifestItem(id, decodedHref, mediaType != null ? mediaType : ""));
+                    String properties = attrValue(item, "properties");
+                    manifest.put(id, new ManifestItem(id, decodedHref, mediaType != null ? mediaType : "", properties != null ? properties : ""));
                 }
             }
 
@@ -196,14 +196,23 @@ public class EpubToCbzConversionService {
 
     private List<TocEntry> tryParseEpub3Nav(ZipFile epub, Map<String, ManifestItem> manifest,
                                              String opfBaseDir, Map<String, Integer> hrefToSpineIndex) {
-        // Find nav document: manifest item with media-type application/xhtml+xml and href containing "nav"
+        // Find nav document: prefer manifest item with properties="nav" (EPUB3 spec)
         Optional<ManifestItem> navItem = manifest.values().stream()
-                .filter(item -> item.mediaType().contains("application/xhtml+xml") &&
-                                (item.href().toLowerCase().contains("nav") ||
-                                 item.href().toLowerCase().contains("toc")))
+                .filter(item -> item.properties().contains("nav"))
                 .findFirst();
+        // Fallback: look for XHTML items with "nav" or "toc" in their href
+        if (navItem.isEmpty()) {
+            navItem = manifest.values().stream()
+                    .filter(item -> item.mediaType().contains("application/xhtml+xml") &&
+                                    (item.href().toLowerCase().contains("nav") ||
+                                     item.href().toLowerCase().contains("toc")))
+                    .findFirst();
+        }
 
-        if (navItem.isEmpty()) return Collections.emptyList();
+        if (navItem.isEmpty()) {
+            log.debug("EpubToCbzConversionService: No EPUB3 nav document found in manifest");
+            return Collections.emptyList();
+        }
 
         String navFullPath = joinPath(opfBaseDir, navItem.get().href());
         ZipEntry navEntry = epub.getEntry(navFullPath);
@@ -263,15 +272,20 @@ public class EpubToCbzConversionService {
             List<TocEntry> entries = new ArrayList<>();
             for (int i = 0; i < navPoints.getLength(); i++) {
                 Node navPoint = navPoints.item(i);
-                String title = getTextContent(navPoint, "text");
-                String src = getTextContent(navPoint, "content");
-                if (title == null || src == null) continue;
+
+                // NCX structure: <navPoint><navLabel><text>Title</text></navLabel><content src="..."/></navPoint>
+                // title is a grandchild: navPoint → navLabel → text
+                String title = null;
+                Node navLabel = firstChildByLocalName(navPoint, "navLabel");
+                if (navLabel != null) {
+                    Node textNode = firstChildByLocalName(navLabel, "text");
+                    if (textNode != null) title = textNode.getTextContent();
+                }
+                if (title == null || title.isBlank()) continue;
 
                 // src is the "src" attribute of <content src="..."/>
                 Node contentNode = firstChildByLocalName(navPoint, "content");
-                if (contentNode != null) {
-                    src = attrValue(contentNode, "src");
-                }
+                String src = contentNode != null ? attrValue(contentNode, "src") : null;
                 if (src == null) continue;
 
                 String hrefNoFrag = src.contains("#") ? src.substring(0, src.indexOf('#')) : src;
@@ -431,7 +445,7 @@ public class EpubToCbzConversionService {
         try {
             String mime;
             try (ByteArrayInputStream bais = new ByteArrayInputStream(imageBytes)) {
-                mime = mimeDetector.detect(bais);
+                mime = MimeDetector.detect(bais);
             }
             if ("image/jpeg".equals(mime)) {
                 return imageBytes;
