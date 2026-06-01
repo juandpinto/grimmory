@@ -118,6 +118,13 @@ const SECONDARY_PAGE_DEFINITIONS: readonly PageDefinition[] = [
     isVisible: canAccessUserStats,
   },
   {
+    id: 'readingYear',
+    labelKey: 'layout.menu.readingYear',
+    icon: 'pi-calendar',
+    routerLink: ['/reading-year'],
+    isVisible: canAccessUserStats,
+  },
+  {
     id: 'metadataManager',
     labelKey: 'layout.menu.metadataManager',
     icon: 'pi-sparkles',

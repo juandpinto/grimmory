@@ -43,6 +43,10 @@
           {{ t('tabSidecar') }}
         </p-tab>
       }
+      <p-tab value="history">
+        <i [class]="'pi pi-history'"></i>
+        {{ t('tabHistory') }}
+      </p-tab>
     </p-tablist>
     <p-tabpanels class="tabpanels-responsive">
       <p-tabpanel value="view">
@@ -68,6 +72,11 @@
           <app-sidecar-viewer [book]="book()"></app-sidecar-viewer>
         </p-tabpanel>
       }
+      <p-tabpanel value="history">
+        @if (book()) {
+          <app-book-reading-history [bookId]="book()!.id"></app-book-reading-history>
+        }
+      </p-tabpanel>
     </p-tabpanels>
   </p-tabs>
   </div>

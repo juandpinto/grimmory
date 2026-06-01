@@ -49,6 +49,7 @@
     "settings": "Settings",
     "libraryStats": "Library Stats",
     "readingStats": "Reading Stats",
+    "readingYear": "Reading Year",
     "metadataManager": "Metadata Manager",
     "bookdrop": "Bookdrop",
     "createLibrary": "Create Library",

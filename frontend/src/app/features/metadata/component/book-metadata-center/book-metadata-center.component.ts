@@ -15,6 +15,7 @@ import {MetadataViewerComponent} from './metadata-viewer/metadata-viewer.compone
 import {MetadataEditorComponent} from './metadata-editor/metadata-editor.component';
 import {MetadataSearcherComponent} from './metadata-searcher/metadata-searcher.component';
 import {SidecarViewerComponent} from './sidecar-viewer/sidecar-viewer.component';
+import {BookReadingHistoryComponent} from './book-reading-history/book-reading-history.component';
 import {injectQuery, queryOptions} from '@tanstack/angular-query-experimental';
 import {bookRecommendationsQueryKey} from '../../../book/service/book-query-keys';
 
@@ -32,6 +33,7 @@ import {bookRecommendationsQueryKey} from '../../../book/service/book-query-keys
     MetadataEditorComponent,
     MetadataSearcherComponent,
     SidecarViewerComponent,
+    BookReadingHistoryComponent,
     Button,
     TranslocoDirective
   ],
@@ -101,7 +103,7 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
 
     return (this.admin() || this.canEditMetadata()) && !this.isPhysical && this.isLocalStorage() && sidecarEnabled;
   }
-  private validTabs = ['view', 'edit', 'match', 'sidecar'];
+  private validTabs = ['view', 'edit', 'match', 'sidecar', 'history'];
 
   get tab(): string {
     return this._tab;

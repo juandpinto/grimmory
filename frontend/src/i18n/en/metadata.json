@@ -5,7 +5,8 @@
     "tabView": "Book Details",
     "tabEdit": "Edit Metadata",
     "tabSearch": "Search Metadata",
-    "tabSidecar": "Sidecar"
+    "tabSidecar": "Sidecar",
+    "tabHistory": "History"
   },
   "readingSessions": {
     "loading": "Loading reading sessions...",
@@ -596,5 +597,30 @@
   },
   "fetchOptions": {
     "startRefresh": "Start Refresh"
+  }
+,
+  "history": {
+    "title": "Reading History",
+    "empty": "No read-throughs recorded for this book yet.",
+    "addReadthrough": "Add Read-through",
+    "editReadthrough": "Edit Read-through",
+    "deleteReadthrough": "Delete Read-through",
+    "deleteConfirm": "Delete this read-through entry?",
+    "deleteConfirmHeader": "Delete Read-through",
+    "startedOn": "Started",
+    "finishedOn": "Finished",
+    "notes": "Notes",
+    "noDate": "—",
+    "readthrough": "Read-through #{{ n }}",
+    "form": {
+      "title": "Read-through",
+      "startedOnLabel": "Started on",
+      "startedOnHint": "Leave blank if unknown",
+      "finishedOnLabel": "Finished on",
+      "notesLabel": "Notes",
+      "notesPlaceholder": "Optional notes about this read-through...",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
   }
 }

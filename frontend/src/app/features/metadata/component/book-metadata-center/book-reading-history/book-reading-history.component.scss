@@ -1,0 +1,75 @@
+:host {
+  display: block;
+  padding: 1rem 0;
+}
+
+.history-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1rem;
+}
+
+.history-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--p-text-color);
+}
+
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 2rem;
+}
+
+.empty-message {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  padding: 2rem 0;
+  font-size: 0.9rem;
+}
+
+.col-num {
+  width: 2.5rem;
+  text-align: center;
+}
+
+.col-actions {
+  width: 5rem;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.notes-cell {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--p-text-muted-color);
+  font-size: 0.85rem;
+}
+
+.form-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 0.25rem 0;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--p-text-color);
+}
+
+.form-hint {
+  font-size: 0.75rem;
+  color: var(--p-text-muted-color);
+}

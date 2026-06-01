@@ -1,0 +1,117 @@
+<div *transloco="let t; prefix: 'metadata.history'">
+  <div class="history-header">
+    <h3 class="history-title">{{ t('title') }}</h3>
+    <p-button
+      icon="pi pi-plus"
+      [label]="t('addReadthrough')"
+      severity="secondary"
+      size="small"
+      (click)="openForm()">
+    </p-button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-wrapper">
+      <p-progressSpinner strokeWidth="4" [style]="{width: '48px', height: '48px'}"></p-progressSpinner>
+    </div>
+  } @else if (readthroughs().length === 0) {
+    <p class="empty-message">{{ t('empty') }}</p>
+  } @else {
+    <p-table
+      [value]="readthroughs()"
+      [tableStyle]="{'min-width': '100%'}"
+      styleClass="p-datatable-sm">
+      <ng-template pTemplate="header">
+        <tr>
+          <th class="col-num">#</th>
+          <th>{{ t('startedOn') }}</th>
+          <th>{{ t('finishedOn') }}</th>
+          <th>{{ t('notes') }}</th>
+          <th class="col-actions"></th>
+        </tr>
+      </ng-template>
+      <ng-template pTemplate="body" let-rt let-i="rowIndex">
+        <tr>
+          <td class="col-num">{{ i + 1 }}</td>
+          <td>{{ rt.startedOn ? formatDate(rt.startedOn) : t('noDate') }}</td>
+          <td>{{ formatDate(rt.finishedOn) }}</td>
+          <td class="notes-cell">{{ rt.notes || t('noDate') }}</td>
+          <td class="col-actions">
+            <p-button
+              icon="pi pi-pencil"
+              [text]="true"
+              severity="secondary"
+              size="small"
+              (click)="openForm(rt)">
+            </p-button>
+            <p-button
+              icon="pi pi-trash"
+              [text]="true"
+              severity="danger"
+              size="small"
+              (click)="confirmDelete(rt)">
+            </p-button>
+          </td>
+        </tr>
+      </ng-template>
+    </p-table>
+  }
+
+  <p-dialog
+    [(visible)]="showForm"
+    [modal]="true"
+    [header]="formDialogTitle"
+    [style]="{width: '420px'}"
+    [draggable]="false"
+    [resizable]="false">
+    <div class="form-body">
+      <div class="form-field">
+        <label class="form-label">{{ t('form.startedOnLabel') }}</label>
+        <small class="form-hint">{{ t('form.startedOnHint') }}</small>
+        <p-datepicker
+          [(ngModel)]="formStartedOn"
+          [showIcon]="true"
+          dateFormat="M d, yy"
+          [showClear]="true"
+          appendTo="body"
+          styleClass="w-full">
+        </p-datepicker>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ t('form.finishedOnLabel') }}</label>
+        <p-datepicker
+          [(ngModel)]="formFinishedOn"
+          [showIcon]="true"
+          dateFormat="M d, yy"
+          appendTo="body"
+          styleClass="w-full">
+        </p-datepicker>
+      </div>
+      <div class="form-field">
+        <label class="form-label">{{ t('form.notesLabel') }}</label>
+        <textarea
+          pTextarea
+          [(ngModel)]="formNotes"
+          [placeholder]="t('form.notesPlaceholder')"
+          rows="3"
+          style="width:100%">
+        </textarea>
+      </div>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button
+        [label]="t('form.cancel')"
+        severity="secondary"
+        [text]="true"
+        (click)="closeForm()">
+      </p-button>
+      <p-button
+        [label]="t('form.save')"
+        [disabled]="!formFinishedOn"
+        (click)="saveReadthrough()">
+      </p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog></p-confirmDialog>
+</div>

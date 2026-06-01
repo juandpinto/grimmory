@@ -1,0 +1,201 @@
+<div class="reading-year-container" *transloco="let t; prefix: 'readingYear'">
+
+  <!-- Page Header with Year Selector -->
+  <div class="page-header">
+    <div class="year-selector">
+      <p-button
+        icon="pi pi-chevron-left"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        (click)="previousYear()"
+        [pTooltip]="t('yearSelector.previous')">
+      </p-button>
+      <h1 class="year-label">{{ year() }}</h1>
+      <p-button
+        icon="pi pi-chevron-right"
+        [rounded]="true"
+        [text]="true"
+        severity="secondary"
+        size="small"
+        (click)="nextYear()"
+        [disabled]="year() >= currentYear"
+        [pTooltip]="t('yearSelector.next')">
+      </p-button>
+    </div>
+    <h2 class="page-title">{{ t('title') }}</h2>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-wrapper">
+      <p-progressSpinner strokeWidth="4" [style]="{width: '56px', height: '56px'}"></p-progressSpinner>
+    </div>
+  } @else {
+
+    <!-- Goal + Stats Row -->
+    <div class="top-row">
+
+      <!-- Goal Ring -->
+      <div class="goal-card card">
+        @if (goal()) {
+          <div class="goal-ring-wrapper">
+            <svg class="goal-ring" viewBox="0 0 120 120">
+              <circle class="ring-bg" cx="60" cy="60" r="52" fill="none" stroke-width="10"/>
+              <circle
+                class="ring-progress"
+                cx="60" cy="60" r="52"
+                fill="none"
+                stroke-width="10"
+                stroke-linecap="round"
+                [attr.stroke-dasharray]="circumference"
+                [attr.stroke-dashoffset]="dashOffset()"
+                transform="rotate(-90 60 60)">
+              </circle>
+              <text x="60" y="55" text-anchor="middle" class="ring-count">{{ booksRead() }}</text>
+              <text x="60" y="72" text-anchor="middle" class="ring-goal">{{ t('goal.ofGoal', {goal: goal()!.bookGoal}) }}</text>
+            </svg>
+            <div class="goal-pct">{{ goalProgressPct() }}%</div>
+          </div>
+
+          @if (paceStatus() === 'ahead') {
+            <div class="pace-badge pace-ahead">
+              <i class="pi pi-arrow-up"></i> {{ t('goal.ahead') }}
+            </div>
+          } @else if (paceStatus() === 'behind') {
+            <div class="pace-badge pace-behind">
+              <i class="pi pi-arrow-down"></i> {{ t('goal.behind') }}
+            </div>
+          } @else if (paceStatus() === 'on') {
+            <div class="pace-badge pace-on">
+              <i class="pi pi-check"></i> {{ t('goal.onPace') }}
+            </div>
+          }
+
+          <div class="goal-actions">
+            <p-button
+              icon="pi pi-pencil"
+              [label]="t('goal.editGoal')"
+              severity="secondary"
+              size="small"
+              [text]="true"
+              (click)="openGoalDialog()">
+            </p-button>
+            <p-button
+              icon="pi pi-trash"
+              [label]="t('goal.deleteGoal')"
+              severity="danger"
+              size="small"
+              [text]="true"
+              (click)="confirmDeleteGoal()">
+            </p-button>
+          </div>
+        } @else {
+          <div class="goal-empty">
+            <i class="pi pi-bullseye goal-empty-icon"></i>
+            <p class="goal-empty-text">{{ t('goal.notSet', {year: year()}) }}</p>
+            <p-button
+              icon="pi pi-plus"
+              [label]="t('goal.setGoal')"
+              severity="secondary"
+              (click)="openGoalDialog()">
+            </p-button>
+          </div>
+        }
+      </div>
+
+      <!-- Stats Strip -->
+      <div class="stats-strip card">
+        <div class="stat-item">
+          <span class="stat-value">{{ booksRead() }}</span>
+          <span class="stat-label">{{ t('summary.totalBooks') }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ totalPages() | number }}</span>
+          <span class="stat-label">{{ t('summary.totalPages') }}</span>
+        </div>
+        <div class="stat-divider"></div>
+        <div class="stat-item">
+          <span class="stat-value">{{ booksRead() > 0 ? ((totalPages() / booksRead()) | number:'1.0-0') : '—' }}</span>
+          <span class="stat-label">{{ t('summary.avgPages') }}</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Monthly Chart -->
+    <div class="chart-card card">
+      <h3 class="section-title">{{ t('monthlyChart.title') }}</h3>
+      @if (booksRead() === 0) {
+        <p class="empty-message">{{ t('monthlyChart.noData', {year: year()}) }}</p>
+      } @else {
+        <div class="chart-container">
+          <canvas baseChart
+            [type]="chartType"
+            [data]="chartData()"
+            [options]="chartOptions">
+          </canvas>
+        </div>
+      }
+    </div>
+
+    <!-- Book List -->
+    <div class="book-list-card card">
+      <h3 class="section-title">{{ t('bookList.title') }}</h3>
+      @if (books().length === 0) {
+        <p class="empty-message">{{ t('summary.noBooks', {year: year()}) }}</p>
+      } @else {
+        <div class="book-list">
+          @for (book of books(); track book.readthroughId) {
+            <div class="book-item">
+              @if (getCoverUrl(book)) {
+                <img [src]="getCoverUrl(book)!" [alt]="book.bookTitle ?? ''" class="book-cover" loading="lazy"/>
+              } @else {
+                <div class="book-cover book-cover-placeholder">
+                  <i class="pi pi-book"></i>
+                </div>
+              }
+              <div class="book-info">
+                <span class="book-title">{{ book.bookTitle ?? t('bookList.unknownTitle') }}</span>
+                @if (getAuthors(book)) {
+                  <span class="book-authors">{{ getAuthors(book) }}</span>
+                }
+                <span class="book-finished">{{ t('bookList.finishedOn') }}: {{ formatDate(book.finishedOn) }}</span>
+                @if (book.pageCount) {
+                  <span class="book-pages">{{ t('bookList.pages', {count: book.pageCount}) }}</span>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Goal Dialog -->
+  <p-dialog
+    [(visible)]="showGoalDialog"
+    [modal]="true"
+    [header]="goal() ? t('goal.dialog.titleEdit', {year: year()}) : t('goal.dialog.titleSet', {year: year()})"
+    [style]="{width: '360px'}"
+    [draggable]="false"
+    [resizable]="false">
+    <div class="goal-form">
+      <label class="form-label">{{ t('goal.dialog.bookGoalLabel') }}</label>
+      <p-inputNumber
+        [(ngModel)]="goalInput"
+        [min]="1"
+        [max]="9999"
+        [placeholder]="t('goal.dialog.bookGoalPlaceholder')"
+        styleClass="w-full"
+        [showButtons]="false">
+      </p-inputNumber>
+    </div>
+    <ng-template pTemplate="footer">
+      <p-button [label]="t('goal.dialog.cancel')" severity="secondary" [text]="true" (click)="showGoalDialog = false"></p-button>
+      <p-button [label]="t('goal.dialog.save')" [disabled]="!goalInput || goalInput < 1" (click)="saveGoal()"></p-button>
+    </ng-template>
+  </p-dialog>
+
+  <p-confirmDialog></p-confirmDialog>
+</div>

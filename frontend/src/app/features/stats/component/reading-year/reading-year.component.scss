@@ -1,0 +1,305 @@
+:host {
+  display: block;
+}
+
+.reading-year-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+// Header
+.page-header {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.year-selector {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.year-label {
+  font-size: 2rem;
+  font-weight: 700;
+  margin: 0;
+  min-width: 5rem;
+  text-align: center;
+  color: var(--p-text-color);
+}
+
+.page-title {
+  font-size: 1rem;
+  font-weight: 400;
+  color: var(--p-text-muted-color);
+  margin: 0;
+}
+
+// Loading
+.loading-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 4rem;
+}
+
+// Cards
+.card {
+  background: var(--p-surface-card, var(--p-surface-50));
+  border: 1px solid var(--p-surface-border, var(--p-surface-200));
+  border-radius: 0.75rem;
+  padding: 1.5rem;
+}
+
+// Top row layout
+.top-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 1.5rem;
+  align-items: start;
+
+  @media (max-width: 600px) {
+    grid-template-columns: 1fr;
+  }
+}
+
+// Goal card
+.goal-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 200px;
+}
+
+.goal-ring-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.goal-ring {
+  width: 120px;
+  height: 120px;
+
+  .ring-bg {
+    stroke: var(--p-surface-200, #e5e7eb);
+  }
+
+  .ring-progress {
+    stroke: var(--p-primary-color, #6366f1);
+    transition: stroke-dashoffset 0.5s ease;
+  }
+
+  .ring-count {
+    font-size: 22px;
+    font-weight: 700;
+    fill: var(--p-text-color);
+  }
+
+  .ring-goal {
+    font-size: 10px;
+    fill: var(--p-text-muted-color);
+  }
+}
+
+.goal-pct {
+  position: absolute;
+  bottom: -4px;
+  right: -8px;
+  background: var(--p-primary-color, #6366f1);
+  color: #fff;
+  font-size: 0.7rem;
+  font-weight: 700;
+  padding: 2px 6px;
+  border-radius: 10px;
+}
+
+.pace-badge {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 4px 12px;
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  &.pace-ahead {
+    background: rgba(34, 197, 94, 0.15);
+    color: #16a34a;
+  }
+  &.pace-behind {
+    background: rgba(239, 68, 68, 0.15);
+    color: #dc2626;
+  }
+  &.pace-on {
+    background: rgba(99, 102, 241, 0.15);
+    color: var(--p-primary-color, #6366f1);
+  }
+}
+
+.goal-actions {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.goal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 0;
+}
+
+.goal-empty-icon {
+  font-size: 2rem;
+  color: var(--p-text-muted-color);
+}
+
+.goal-empty-text {
+  color: var(--p-text-muted-color);
+  font-size: 0.9rem;
+  text-align: center;
+  margin: 0;
+}
+
+// Stats strip
+.stats-strip {
+  display: flex;
+  align-items: center;
+  gap: 0;
+}
+
+.stat-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.stat-value {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--p-text-color);
+}
+
+.stat-label {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+  text-align: center;
+}
+
+.stat-divider {
+  width: 1px;
+  height: 48px;
+  background: var(--p-surface-border, var(--p-surface-200));
+}
+
+// Section titles
+.section-title {
+  font-size: 1rem;
+  font-weight: 600;
+  margin: 0 0 1rem 0;
+  color: var(--p-text-color);
+}
+
+// Chart
+.chart-container {
+  height: 240px;
+  position: relative;
+}
+
+// Book list
+.book-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.book-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 0.5rem;
+  border-radius: 0.5rem;
+  transition: background 0.15s;
+
+  &:hover {
+    background: var(--p-surface-hover, var(--p-surface-100));
+  }
+}
+
+.book-cover {
+  width: 44px;
+  height: 64px;
+  object-fit: cover;
+  border-radius: 4px;
+  flex-shrink: 0;
+  background: var(--p-surface-200);
+}
+
+.book-cover-placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: var(--p-text-muted-color);
+  font-size: 1.2rem;
+  border: 1px solid var(--p-surface-border);
+}
+
+.book-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  min-width: 0;
+}
+
+.book-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--p-text-color);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.book-authors {
+  font-size: 0.8rem;
+  color: var(--p-text-muted-color);
+}
+
+.book-finished,
+.book-pages {
+  font-size: 0.78rem;
+  color: var(--p-text-muted-color);
+}
+
+// Empty states
+.empty-message {
+  text-align: center;
+  color: var(--p-text-muted-color);
+  font-size: 0.9rem;
+  padding: 1rem 0;
+  margin: 0;
+}
+
+// Goal form
+.goal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.25rem 0;
+}
+
+.form-label {
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--p-text-color);
+}

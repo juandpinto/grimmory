@@ -1,0 +1,57 @@
+{
+  "title": "Reading Year",
+  "yearSelector": {
+    "label": "Year",
+    "previous": "Previous year",
+    "next": "Next year"
+  },
+  "goal": {
+    "title": "Reading Goal",
+    "notSet": "No goal set for {{ year }}",
+    "setGoal": "Set Goal",
+    "editGoal": "Edit Goal",
+    "deleteGoal": "Remove Goal",
+    "deleteConfirm": "Remove your reading goal for {{ year }}?",
+    "deleteConfirmHeader": "Remove Reading Goal",
+    "books": "{{ count }} book",
+    "booksPlural": "{{ count }} books",
+    "booksRead": "read",
+    "ofGoal": "of {{ goal }}",
+    "onPace": "On pace",
+    "ahead": "Ahead of pace",
+    "behind": "Behind pace",
+    "futureYear": "Goal set",
+    "pastYear": "Final result",
+    "completed": "Goal achieved!",
+    "dialog": {
+      "titleSet": "Set Reading Goal for {{ year }}",
+      "titleEdit": "Edit Reading Goal for {{ year }}",
+      "bookGoalLabel": "Books to read",
+      "bookGoalPlaceholder": "e.g. 24",
+      "save": "Save",
+      "cancel": "Cancel"
+    }
+  },
+  "summary": {
+    "totalBooks": "Books Read",
+    "totalPages": "Pages Read",
+    "avgPages": "Avg. Pages / Book",
+    "longestBook": "Longest Book",
+    "noBooks": "No books completed in {{ year }}."
+  },
+  "monthlyChart": {
+    "title": "Books per Month",
+    "noData": "No data for {{ year }}.",
+    "months": {
+      "1": "Jan", "2": "Feb", "3": "Mar", "4": "Apr",
+      "5": "May", "6": "Jun", "7": "Jul", "8": "Aug",
+      "9": "Sep", "10": "Oct", "11": "Nov", "12": "Dec"
+    }
+  },
+  "bookList": {
+    "title": "Books Completed",
+    "finishedOn": "Finished",
+    "pages": "{{ count }} pages",
+    "unknownTitle": "Unknown Title"
+  }
+}

@@ -66,6 +66,7 @@ export function buildToolsSection(
 ): SidebarSection[] {
   const items = [
     findPageNavItem('libraryStats', translate, permissions),
+    findPageNavItem('readingYear', translate, permissions),
     findPageNavItem('metadataManager', translate, permissions),
     findPageNavItem('bookdrop', translate, permissions),
   ].filter((item): item is SidebarLeaf => !!item);
