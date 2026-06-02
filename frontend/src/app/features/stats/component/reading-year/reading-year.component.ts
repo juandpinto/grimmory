@@ -2,16 +2,19 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
-  OnInit,
   signal,
+  untracked,
 } from '@angular/core';
 import {takeUntilDestroyed} from '@angular/core/rxjs-interop';
 import {DecimalPipe} from '@angular/common';
 import {FormsModule} from '@angular/forms';
 import {Router} from '@angular/router';
-import {BaseChartDirective} from 'ng2-charts';
+import {BaseChartDirective, provideCharts, withDefaultRegisterables} from 'ng2-charts';
 import {ChartConfiguration, ChartData} from 'chart.js';
+import {injectQuery, QueryClient} from '@tanstack/angular-query-experimental';
+import {lastValueFrom} from 'rxjs';
 import {ConfirmationService, MessageService} from 'primeng/api';
 import {AutoComplete} from 'primeng/autocomplete';
 import {Button} from 'primeng/button';
@@ -26,6 +29,8 @@ import {TranslocoDirective, TranslocoService} from '@jsverse/transloco';
 import {BookService} from '../../../book/service/book.service';
 import {Book} from '../../../book/model/book.model';
 import {UrlHelperService} from '../../../../shared/service/url-helper.service';
+import {UserService} from '../../../settings/user-management/user.service';
+import {BookDialogHelperService} from '../../../book/components/book-browser/book-dialog-helper.service';
 import {ReadingGoalService} from './service/reading-goal.service';
 import {ReadthroughService} from './service/readthrough.service';
 import {YearlySummaryResponse} from './model/reading-goal.model';
@@ -51,11 +56,11 @@ const MONTH_LABELS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'S
     Tooltip,
     TranslocoDirective,
   ],
-  providers: [ConfirmationService],
+  providers: [ConfirmationService, provideCharts(withDefaultRegisterables())],
   templateUrl: './reading-year.component.html',
   styleUrls: ['./reading-year.component.scss'],
 })
-export class ReadingYearComponent implements OnInit {
+export class ReadingYearComponent {
   private readonly goalService = inject(ReadingGoalService);
   private readonly readthroughService = inject(ReadthroughService);
   private readonly bookService = inject(BookService);
@@ -65,13 +70,33 @@ export class ReadingYearComponent implements OnInit {
   private readonly messageService = inject(MessageService);
   private readonly t = inject(TranslocoService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly queryClient = inject(QueryClient);
+  private readonly userService = inject(UserService);
+  private readonly bookDialogHelper = inject(BookDialogHelperService);
+
+  private readonly metadataCenterViewMode = computed(() =>
+    this.userService.currentUser()?.userSettings?.metadataCenterViewMode ?? 'route'
+  );
 
   private readonly failedCoverIds = signal(new Set<number>());
 
   readonly currentYear = new Date().getFullYear();
   year = signal(this.currentYear);
-  loading = signal(false);
-  summary = signal<YearlySummaryResponse | null>(null);
+
+  private readonly summaryQuery = injectQuery(() => ({
+    queryKey: ['reading-year-summary', this.year()] as const,
+    queryFn: () => lastValueFrom(this.goalService.getYearlySummary(this.year())),
+  }));
+
+  readonly loading = computed(() => this.summaryQuery.isPending());
+  readonly summary = computed(() => this.summaryQuery.data() ?? null);
+
+  constructor() {
+    effect(() => {
+      const data = this.summary();
+      if (data) untracked(() => this.updateChart(data));
+    });
+  }
 
   // Goal dialog
   showGoalDialog = false;
@@ -152,10 +177,6 @@ export class ReadingYearComponent implements OnInit {
     this.circumference * (1 - this.goalProgress())
   );
 
-  ngOnInit(): void {
-    this.loadSummary();
-  }
-
   previousYear(): void {
     this.year.update(y => y - 1);
     this.loadSummary();
@@ -169,20 +190,9 @@ export class ReadingYearComponent implements OnInit {
   }
 
   loadSummary(): void {
-    this.loading.set(true);
-    this.goalService.getYearlySummary(this.year())
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (data) => {
-          this.summary.set(data);
-          this.updateChart(data);
-          this.loading.set(false);
-        },
-        error: () => {
-          this.summary.set(null);
-          this.loading.set(false);
-        },
-      });
+    void this.queryClient.invalidateQueries({
+      queryKey: ['reading-year-summary', this.year()],
+    });
   }
 
   private updateChart(data: YearlySummaryResponse): void {
@@ -264,7 +274,11 @@ export class ReadingYearComponent implements OnInit {
   }
 
   goToHistory(book: ReadthroughSummaryDto): void {
-    this.router.navigate(['/book', book.bookId], {queryParams: {tab: 'history'}});
+    if (this.metadataCenterViewMode() === 'route') {
+      this.router.navigate(['/book', book.bookId], {queryParams: {tab: 'history'}});
+    } else {
+      this.bookDialogHelper.openBookDetailsDialog(book.bookId, 'history');
+    }
   }
 
   getAuthors(book: ReadthroughSummaryDto): string {

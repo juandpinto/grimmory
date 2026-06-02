@@ -19,7 +19,7 @@ export class BookDialogHelperService {
     return this.dialogLauncherService.openDialog(component, options);
   }
 
-  async openBookDetailsDialog(bookId: number): Promise<DynamicDialogRef | null> {
+  async openBookDetailsDialog(bookId: number, initialTab?: string): Promise<DynamicDialogRef | null> {
     return this.dialogLauncherService.launchLazyDialog(async () => {
       const {BookMetadataCenterComponent} = await import('../../../metadata/component/book-metadata-center/book-metadata-center.component');
       return this.openDialog(BookMetadataCenterComponent, {
@@ -27,6 +27,7 @@ export class BookDialogHelperService {
         styleClass: `book-details-dialog ${DialogSize.FULL} ${DialogStyle.MINIMAL}`,
         data: {
           bookId: bookId,
+          ...(initialTab ? {initialTab} : {}),
         },
       });
     });

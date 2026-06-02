@@ -256,10 +256,11 @@
         <label class="form-label">{{ t('logRead.dialog.notesLabel') }}</label>
         <textarea pTextarea [(ngModel)]="logReadNotes" [placeholder]="t('logRead.dialog.notesPlaceholder')" rows="3" style="width:100%"></textarea>
       </div>
+      <div class="dialog-actions">
+        <p-button [label]="t('logRead.dialog.cancel')" severity="secondary" [text]="true" (click)="showLogReadDialog = false"></p-button>
+        <p-button [label]="t('logRead.dialog.save')" [disabled]="!logReadOption || !logReadFinishedOn" (click)="saveLogRead()"></p-button>
+      </div>
     </div>
-    <ng-template pTemplate="footer">
-      <p-button [label]="t('logRead.dialog.cancel')" severity="secondary" [text]="true" (click)="showLogReadDialog = false"></p-button>
-      <p-button [label]="t('logRead.dialog.save')" [disabled]="!logReadOption || !logReadFinishedOn" (click)="saveLogRead()"></p-button>
-    </ng-template>
+    <ng-template pTemplate="footer"></ng-template>
   </p-dialog>
 </div>

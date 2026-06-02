@@ -153,6 +153,11 @@ export class BookMetadataCenterComponent implements OnInit, OnDestroy {
         this._tab = this.validTabs.includes(tabParam) ? tabParam : 'view';
       });
 
+    const initialTabFromDialog = this.config?.data?.initialTab as string | undefined;
+    if (initialTabFromDialog && this.validTabs.includes(initialTabFromDialog)) {
+      this._tab = initialTabFromDialog;
+    }
+
   }
 
   ngOnDestroy(): void {
